@@ -1,0 +1,111 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: '${ENV_NAME}'
+    project: 'storygen'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules files
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # StoryGen application metrics
+  - job_name: 'storygen-app'
+    dns_sd_configs:
+      - names:
+          - 'api.storygen.${ENV_NAME}.local'
+        type: 'A'
+        port: 8080
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+):.*'
+        replacement: '${1}'
+    metrics_path: '/metrics'
+
+  # Redis metrics via exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis'
+
+  # Node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor for container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'cadvisor'
+
+  # StatsD exporter
+  - job_name: 'statsd'
+    static_configs:
+      - targets: ['statsd:9102']
+
+  # AWS CloudWatch exporter
+  - job_name: 'cloudwatch'
+    ec2_sd_configs:
+      - region: ${AWS_REGION}
+        port: 9106
+        filters:
+          - name: tag:Project
+            values: ['StoryGen']
+          - name: tag:Environment
+            values: ['${ENV_NAME}']
+
+  # Blackbox exporter for endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://storygen.example.com
+          - https://storygen.example.com/health
+          - https://storygen.example.com/api/styles
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+# Service discovery for ECS tasks
+  - job_name: 'ecs-tasks'
+    ec2_sd_configs:
+      - region: ${AWS_REGION}
+        port: 8080
+        filters:
+          - name: tag:aws:ecs:cluster-name
+            values: ['storygen-${ENV_NAME}']
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_aws_ecs_task_family]
+        target_label: task_family
+      - source_labels: [__meta_ec2_tag_aws_ecs_task_revision]
+        target_label: task_revision
+      - source_labels: [__meta_ec2_tag_aws_ecs_container_name]
+        target_label: container_name
