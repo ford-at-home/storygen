@@ -1,0 +1,60 @@
+# Testing Framework
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-asyncio==0.21.1
+pytest-timeout==2.2.0
+pytest-xdist==3.5.0  # Parallel test execution
+
+# Mocking and Fixtures
+faker==20.1.0
+factory-boy==3.3.0
+responses==0.24.1
+moto==4.2.11  # AWS service mocking
+
+# Code Quality
+flake8==6.1.0
+black==23.12.0
+mypy==1.7.1
+isort==5.13.2
+pylint==3.0.3
+
+# Security Testing
+bandit==1.7.5
+safety==3.0.1
+
+# Performance Testing
+locust==2.20.0
+psutil==5.9.6
+memory-profiler==0.61.0
+
+# Test Utilities
+coverage==7.3.4
+coverage-badge==1.1.0
+pytest-html==4.1.1
+pytest-json-report==1.5.0
+allure-pytest==2.13.2
+
+# API Testing
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Additional Testing Tools
+selenium==4.16.0  # For browser automation if needed
+pytest-benchmark==4.0.0  # For benchmarking
+pytest-env==1.1.3  # Environment variable management
+pytest-ordering==0.6  # Test ordering
+pytest-retry==1.6.1  # Retry flaky tests
+testcontainers==3.7.1  # Docker containers for testing
+
+# Documentation
+pytest-doctestplus==1.0.0  # Doctest integration
+
+# Debugging
+pytest-pdb==0.3.1
+ipdb==0.13.13
+
+# Type Stubs
+types-requests==2.31.0.10
+types-redis==4.6.0.11
+boto3-stubs[bedrock-runtime]==1.34.11
